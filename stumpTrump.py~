@@ -49,6 +49,7 @@ while True:
         if pygame.key.get_pressed()[pygame.K_r]:
             aboveBL = True
             baseLine = False
+            tx = randint(10, int(width))
 	_, frame = cap.read()
 
 	Current = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
