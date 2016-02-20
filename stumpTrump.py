@@ -1,8 +1,6 @@
 import cv2
-import pyautogui
 import sys
 from random import randint
-from os import system as cmd
 import pygame
 
 pygame.init()
