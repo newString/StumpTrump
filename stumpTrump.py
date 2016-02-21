@@ -28,16 +28,16 @@ trump[3] = pygame.transform.scale(trump[3], (200, 300))
 
 trump[4] = pygame.image.load("trumpbaby_1.png").convert()
 trump[4].set_colorkey((255, 255, 255))
-trump[4] = pygame.transform.scale(trump[4], (500, 500))
+trump[4] = pygame.transform.scale(trump[4], (300, 300))
 trump[5] = pygame.image.load("trumpbaby_2.png").convert()
 trump[5].set_colorkey((255, 255, 255))
-trump[5] = pygame.transform.scale(trump[5], (500, 500))
+trump[5] = pygame.transform.scale(trump[5], (300, 300))
 trump[6] = pygame.image.load("trumpbaby_3.png").convert()
 trump[6].set_colorkey((255, 255, 255))
-trump[6] = pygame.transform.scale(trump[6], (500, 500))
+trump[6] = pygame.transform.scale(trump[6], (300, 300))
 trump[7] = pygame.image.load("explosion.png").convert()
 trump[7].set_colorkey((255, 255, 255))
-trump[7] = pygame.transform.scale(trump[7], (500, 500))
+trump[7] = pygame.transform.scale(trump[7], (300, 300))
 
 
 
@@ -63,6 +63,7 @@ ghx, ghy = None, None
 tpos = [[int(width/2), 0], [randint(50, width-100), 0], [randint(50, width-100), 0]]
 tsize = [[100, 100], [100, 100], [100, 100]]
 hit = [0, 0, 0]
+bhit = 0
 nextlvl = True 
 img=[]
 health = 100
@@ -131,7 +132,8 @@ while True:
                     img[i] = 3
                     tpos[i][1] = -500*i
             if level==11:
-                tpos = [710, 290]
+                tpos = [100, 0]
+                scaledpos = [int((width - tpos[0])*SIZE[0]/width), int(tpos[1]*SIZE[1]/hieght)]
             nextlvl = False
         else:
             for i in xrange(level):
@@ -162,7 +164,8 @@ while True:
                 i = 5
             else:
                 i = 6
-            canvas.blit(trump[i], tpos)
+            print scaledpos
+            canvas.blit(trump[i], scaledpos)
         if Previous is None:
 		Previous = Current
 		continue
@@ -187,10 +190,8 @@ while True:
                         if x in range(tpos[tid][0], tpos[tid][0]+100) and y-100 in range(tpos[tid][1], tpos[tid][1]+100):
                             hit[tid]+=1
                 if level==11:
-                    x = int((width-x)*SIZE[0]/width)
-                    y = int(y*SIZE[1]/hieght)
-                    if x in range(tpos[0]+500) and y in range(tpos[1]+500):
-                        hit+=1
+                    if x in range(tpos[0], tpos[0]+100) and y in range(tpos[1], tpos[1]+100):
+                        bhit+=1
                 if x in range(0, int(width)/2) and y in range(0, baseLine):
                     mvRight+=1
                 if x in range(int(width)/2, int(width)) and y in range(0, baseLine):
@@ -258,7 +259,7 @@ while True:
             if tpos[1]>hieght:
                 print "you lost"
                 raw_input()
-            if hit>=10:
+            if bhit>=10:
                 bosshealth-=1
                 if bosshealth == 0:
                     print "you win!"
