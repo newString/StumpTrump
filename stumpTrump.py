@@ -50,10 +50,13 @@ background = pygame.transform.scale(background, (1920, 1080))
 
 if "-a" in sys.argv:
 	sys.argv=["-v", "-p"]
+start = True
 level = 1
 if "-l" in sys.argv:
+    start = False
     level = 11
 if "-x" in sys.argv:
+    start = False
     level = 10
     
 cap = cv2.VideoCapture(0)
@@ -76,14 +79,13 @@ bhit = 0
 nextlvl = True 
 img=[]
 health = 100
-mbhealth = 50
-bosshealth = 50 
+mbhealth = 25
+bosshealth = 25 
 lvlstrt = 0
 win = False
 font = pygame.font.Font(None, 36)
 healthfont = pygame.font.Font(None, 16)
 bossstrt = 0
-start = True
 strtcount = 0
 temp = 0
 while True:
