@@ -3,6 +3,8 @@ import sys
 from random import randint
 import pygame
 from time import time
+from os import chdir
+chdir('resources')
 pygame.init()
 SIZE = [1920, 1080]
 canvas = pygame.display.set_mode(SIZE)
@@ -37,16 +39,23 @@ trump[6].set_colorkey((255, 255, 255))
 trump[6] = pygame.transform.scale(trump[6], (300, 300))
 trump[7] = pygame.image.load("explosion.png").convert()
 trump[7].set_colorkey((255, 255, 255))
-trump[7] = pygame.transform.scale(trump[7], (300, 300))
+trump[7] = pygame.transform.scale(trump[7], (1920, 1080))
 
+player = pygame.image.load("sol.png").convert()
+player.set_colorkey((255, 255, 255))
+player = pygame.transform.scale(player, (50, 100))
 
+background = pygame.image.load("usa.png").convert()
+background = pygame.transform.scale(background, (1920, 1080))
 
 if "-a" in sys.argv:
 	sys.argv=["-v", "-p"]
 level = 1
 if "-l" in sys.argv:
     level = 11
-	
+if "-x" in sys.argv:
+    level = 10
+    
 cap = cv2.VideoCapture(0)
 size = int(cap.get(4)/2)
 hieght = cap.get(4)
@@ -68,19 +77,31 @@ nextlvl = True
 img=[]
 health = 100
 bosshealth = 15
+lvlstrt = 0
 win = False
 font = pygame.font.Font(None, 36)
 bossstrt = 0
 while True:
         canvas.fill((255, 255, 255))
+        canvas.blit(background, (0, 0))
         if level == 10:
             #print "BOSS WAVE"
             if bossstrt==0:
                 bossstrt = time()
             if time()-bossstrt<3:
-                text = font.render("DODGE", 1, (10, 10, 10))
+                text = font.render("DODGE THE TRUMPS", 1, (255, 0, 0))
                 textpos = text.get_rect()
                 textpos.centerx = canvas.get_rect().centerx
+                textpos.centery = canvas.get_rect().centery
+                canvas.blit(text, textpos)
+        else:
+            if nextlvl:
+                lvlstrt = time()
+            if time()-lvlstrt<3:
+                text = font.render("LEVEL: "+str(level), 1, (0, 255, 0))
+                textpos = text.get_rect()
+                textpos.centerx = canvas.get_rect().centerx
+                textpos.centery = canvas.get_rect().centery
                 canvas.blit(text, textpos)
         pygame.draw.line(canvas, (0, 255, 0), (0, 0), (int(health*SIZE[0]/100), 0), 10)
         for event in pygame.event.get():
@@ -91,7 +112,17 @@ while True:
         if pygame.key.get_pressed()[pygame.K_r]:
             aboveBL = True
             baseLine = False
-	_, frame = cap.read()
+        if win:
+            font = pygame.font.Font(None, 72)
+            text = font.render("YOU WON!", 1, (0, 0, 255))
+            textpos = text.get_rect()
+            textpos.centerx = canvas.get_rect().centerx
+            textpos.centery = canvas.get_rect().centery
+            canvas.blit(trump[7], (0, 0))
+            canvas.blit(text, textpos)
+            pygame.display.flip()
+            continue
+        _, frame = cap.read()
 
 	Current = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 	gray = Current
@@ -130,7 +161,7 @@ while True:
             if level == 10:
                 for i in xrange(level):
                     img[i] = 3
-                    tpos[i][1] = -500*i
+                    tpos[i][1] = -200*i
             if level==11:
                 tpos = [100, 0]
                 scaledpos = [int((width - tpos[0])*SIZE[0]/width), int(tpos[1]*SIZE[1]/hieght)]
@@ -153,19 +184,24 @@ while True:
                     #trump[tid] = pygame.transform.scale(trump[tid], (scaledsize[tid][0], scaledsize[tid][1]))
                     canvas.blit(trump[img[tid]], scaledpos[tid])
         else:
+            cv2.rectangle(frame, (tpos[0], tpos[1]), (tpos[0]+200, tpos[1]+200), (255, 0, 0), 2)
             pygame.draw.line(canvas, (255, 0, 0), (0, 10), (int(bosshealth*SIZE[0]/15), 10), 10)
             tpos[1]+=1
+            scaledpos = [int((width - tpos[0])*SIZE[0]/width), int(tpos[1]*SIZE[1]/hieght)]
             i=0
             if win:
                 i = 7
+                scaledpos = [0, 0]
             if bosshealth>10:
                 i = 4
             elif bosshealth>5:
                 i = 5
             else:
                 i = 6
-            print scaledpos
             canvas.blit(trump[i], scaledpos)
+            if win:
+                pygame.display.flip()
+                continue
         if Previous is None:
 		Previous = Current
 		continue
@@ -259,12 +295,15 @@ while True:
             if tpos[1]>hieght:
                 print "you lost"
                 raw_input()
-            if bhit>=10:
+            if bhit>=15:
                 bosshealth-=1
                 if bosshealth == 0:
                     print "you win!"
                     win = True
-                    raw_input()
+                    canvas.blit(trump[7], (0, 0))
+                    if win:
+                        pygame.display.flip()
+                        continue
         if mvLeft>=5:
             hx+=mvLeft
         if mvRight>=5:
@@ -300,4 +339,5 @@ while True:
                                 pygame.quit()
                                 exit()
             pygame.draw.circle(canvas, (255, 0, 0), (ghx, ghy), 10)
+            canvas.blit(player, (ghx-5, ghy-5))
         pygame.display.flip()
