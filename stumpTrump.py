@@ -240,16 +240,16 @@ while True:
             ghx = int((width-hx)*SIZE[0]/width)
             ghy = int(hieght-100)#baseLine#int(hy*SIZE[1]/hieght)
             for tid in xrange(level):
-                print scaledpos
-                if ghx in range(scaledpos[tid][0], scaledpos[tid][0]+100):
-                    if ghy in range(scaledpos[tid][1], scaledpos[tid][1]+100):
-                        print "you couldn't stump the trump"
-                        health-=5
-                        if health<=0:
-                            print "you lose"
-                            cv2.destroyAllWindows()
-                            pygame.display.quit()
-                            pygame.quit()
-                            exit()
+                if alivetrump[tid]:
+                    if ghx in range(scaledpos[tid][0], scaledpos[tid][0]+100):
+                        if ghy in range(scaledpos[tid][1], scaledpos[tid][1]+100):
+                            print "you couldn't stump the trump"
+                            health-=5
+                            if health<=0:
+                                print "you lose"
+                                cv2.destroyAllWindows()
+                                pygame.display.quit()
+                                pygame.quit()
+                                exit()
             pygame.draw.circle(canvas, (255, 0, 0), (ghx, ghy), 10)
         pygame.display.flip()
