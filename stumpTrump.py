@@ -76,14 +76,29 @@ bhit = 0
 nextlvl = True 
 img=[]
 health = 100
-bosshealth = 25 
+mbhealth = 50
+bosshealth = 50 
 lvlstrt = 0
 win = False
 font = pygame.font.Font(None, 36)
+healthfont = pygame.font.Font(None, 16)
 bossstrt = 0
+start = True
+strtcount = 0
+temp = 0
 while True:
         canvas.fill((255, 255, 255))
         canvas.blit(background, (0, 0))
+        if start:
+            text = None
+            if temp%2==0:
+                text = font.render("PUNCH HERE TO PLAY", 1, (255, 0, 0))
+            else:
+                text = font.render("PUNCH HERE TO PLAY!")
+            textpos = text.get_rect()
+            textpos.centerx = canvas.get_rect().centerx
+            textpos.centery = canvas.get_rect().centery
+            canvas.blit(text, textpos)
         if level == 10:
             #print "BOSS WAVE"
             if bossstrt==0:
@@ -106,7 +121,12 @@ while True:
                 textpos.centerx = canvas.get_rect().centerx
                 textpos.centery = canvas.get_rect().centery
                 canvas.blit(text, textpos)
-        pygame.draw.line(canvas, (0, 255, 0), (0, 0), (int(health*SIZE[0]/100), 0), 10)
+        pygame.draw.line(canvas, (0, 255, 0), (0, 0), (int(health*SIZE[0]/100), 0), 20)
+        text = healthfont.render("HEALTH", 1, (10, 10, 10))
+        textpos = text.get_rect()
+        textpos.centerx = canvas.get_rect().centerx
+        textpos.centery = 8
+        canvas.blit(text, textpos)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
 	        break	
@@ -172,7 +192,7 @@ while True:
         else:
             for i in xrange(level):
                 scaledpos.append(0)
-        if level!=11:
+        if level!=11 and not start:
             for tid in xrange(level):
                 #tsize[tid][0]+=10
                 #tsize[tid][1]+=10
@@ -186,10 +206,15 @@ while True:
                     scaledpos[tid] = [int((width - tpos[tid][0])*SIZE[0]/width), int(tpos[tid][1]*SIZE[1]/hieght)]
                     #trump[tid] = pygame.transform.scale(trump[tid], (scaledsize[tid][0], scaledsize[tid][1]))
                     canvas.blit(trump[img[tid]], scaledpos[tid])
-        else:
+        elif not start:
             cv2.rectangle(frame, (tpos[0], tpos[1]+100), (tpos[0]-200, tpos[1]+300), (255, 0, 0), 2)
-            pygame.draw.line(canvas, (255, 0, 0), (0, 10), (int(bosshealth*SIZE[0]/25), 10), 10)
-            tpos[1]+=1
+            pygame.draw.line(canvas, (255, 0, 0), (0, 20), (int(bosshealth*SIZE[0]/mbhealth), 20), 20)
+            text = healthfont.render("BOSS HEALTH", 1, (10, 10, 10))
+            textpos = text.get_rect()
+            textpos.centerx = canvas.get_rect().centerx
+            textpos.centery = 22
+            canvas.blit(text, textpos)
+            tpos[1]+=2
             scaledpos = [int((width - tpos[0])*SIZE[0]/width), int(tpos[1]*SIZE[1]/hieght)]
             i=0
             if win:
@@ -235,10 +260,16 @@ while True:
                     mvRight+=1
                 if x in range(int(width)/2, int(width)) and y in range(0, baseLine):
                     mvLeft+=1
+                if start:
+                    if x in range(int(width/2)-100, int(width/2)+100) and y in range(int(hieght/2)-50, int(hieght/2)+50):
+                        strtcount+=1
                 yavg+=(y+(h/2))
                 xavg+=(x+(w/2))
                 counter += 1
 		#cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
+        if start and strtcount>10:
+            start = False
+            continue
         if level<10:
             for tid in xrange(level):
                 if tpos[tid][1]>int(3*hieght/4):
@@ -254,7 +285,7 @@ while True:
                     alivetrump[tid] = False
         
             for tid in xrange(level):
-                if hit[tid]>=10:
+                if hit[tid]>=10 and mvLeft<5 and mvRight<5:
                     print "hit"
                     alivetrump[tid] = False
                     hit[tid] = 0
@@ -274,10 +305,10 @@ while True:
                     print "Nice dodge!"
                     alivetrump[tid] = False
             for tid in xrange(level):
-                if hit[tid]>=10:
-                    print "you couldn't stump the trump!"
-                    health-=5
-                    hit[tid] = 0
+                #if hit[tid]>=10:
+                #    print "you couldn't stump the trump!"
+                #    health-=5
+                #    hit[tid] = 0
                 if health<=0:
                     print "you lose! Final score: "+str((level-1)*10)
                     cv2.destroyAllWindows()
@@ -298,7 +329,7 @@ while True:
             if tpos[1]>hieght:
                 print "you lost"
                 raw_input()
-            if bhit>=15:
+            if bhit>=15 and mvLeft<5 and mvRight<5:
                 bosshealth-=1
                 if bosshealth == 0:
                     print "you win!"
@@ -310,8 +341,12 @@ while True:
                 bhit = 0
         if mvLeft>=5:
             hx+=mvLeft
+            if hx > width:
+                hx = 0 
         if mvRight>=5:
             hx-=mvRight
+            if hx < 0:
+                hx = width
         moved = False
         if mvLeft>=5 or mvRight>=5:
             moved = True
@@ -329,7 +364,7 @@ while True:
 	Previous = Current
         if level==10 and not nextlvl:
             ghx = int((width-hx)*SIZE[0]/width)
-            ghy = int(hieght-100)#baseLine#int(hy*SIZE[1]/hieght)
+            ghy = int(SIZE[1]-300)#baseLine#int(hy*SIZE[1]/hieght)
             for tid in xrange(level):
                 if alivetrump[tid]:
                     if ghx in range(scaledpos[tid][0], scaledpos[tid][0]+100):
