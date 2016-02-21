@@ -76,7 +76,7 @@ bhit = 0
 nextlvl = True 
 img=[]
 health = 100
-bosshealth = 15
+bosshealth = 25 
 lvlstrt = 0
 win = False
 font = pygame.font.Font(None, 36)
@@ -98,7 +98,10 @@ while True:
             if nextlvl:
                 lvlstrt = time()
             if time()-lvlstrt<3:
-                text = font.render("LEVEL: "+str(level), 1, (0, 255, 0))
+                if level!=11:
+                    text = font.render("LEVEL: "+str(level), 1, (0, 255, 0))
+                else:
+                    text = font.render("ULTIMATE TRUMP", 1, (255, 0, 0))
                 textpos = text.get_rect()
                 textpos.centerx = canvas.get_rect().centerx
                 textpos.centery = canvas.get_rect().centery
@@ -163,7 +166,7 @@ while True:
                     img[i] = 3
                     tpos[i][1] = -200*i
             if level==11:
-                tpos = [100, 0]
+                tpos = [int(width/2), 0]
                 scaledpos = [int((width - tpos[0])*SIZE[0]/width), int(tpos[1]*SIZE[1]/hieght)]
             nextlvl = False
         else:
@@ -184,8 +187,8 @@ while True:
                     #trump[tid] = pygame.transform.scale(trump[tid], (scaledsize[tid][0], scaledsize[tid][1]))
                     canvas.blit(trump[img[tid]], scaledpos[tid])
         else:
-            cv2.rectangle(frame, (tpos[0], tpos[1]), (tpos[0]+200, tpos[1]+200), (255, 0, 0), 2)
-            pygame.draw.line(canvas, (255, 0, 0), (0, 10), (int(bosshealth*SIZE[0]/15), 10), 10)
+            cv2.rectangle(frame, (tpos[0], tpos[1]+100), (tpos[0]-200, tpos[1]+300), (255, 0, 0), 2)
+            pygame.draw.line(canvas, (255, 0, 0), (0, 10), (int(bosshealth*SIZE[0]/25), 10), 10)
             tpos[1]+=1
             scaledpos = [int((width - tpos[0])*SIZE[0]/width), int(tpos[1]*SIZE[1]/hieght)]
             i=0
@@ -226,7 +229,7 @@ while True:
                         if x in range(tpos[tid][0], tpos[tid][0]+100) and y-100 in range(tpos[tid][1], tpos[tid][1]+100):
                             hit[tid]+=1
                 if level==11:
-                    if x in range(tpos[0], tpos[0]+100) and y in range(tpos[1], tpos[1]+100):
+                    if x in range(tpos[0]-200, tpos[0]) and y in range(tpos[1]+100, tpos[1]+300):
                         bhit+=1
                 if x in range(0, int(width)/2) and y in range(0, baseLine):
                     mvRight+=1
@@ -304,6 +307,7 @@ while True:
                     if win:
                         pygame.display.flip()
                         continue
+                bhit = 0
         if mvLeft>=5:
             hx+=mvLeft
         if mvRight>=5:
