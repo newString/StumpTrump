@@ -11,7 +11,7 @@ pygame.display.set_caption("Motion Game")
 #nvas = canvas.convert()
 canvas.fill((255, 255, 255))
 
-trump = [None, None, None, None]
+trump = [None, None, None, None, None, None, None, None]
 alivetrump = [True, True, True]
 trump[0] = pygame.image.load("trump1.png").convert()
 trump[0].set_colorkey((255, 255, 255))
@@ -22,16 +22,30 @@ trump[1] = pygame.transform.scale(trump[1], (200, 200))
 trump[2] = pygame.image.load("trump3.png").convert()
 trump[2].set_colorkey((255, 255, 255))
 trump[2] = pygame.transform.scale(trump[2], (200, 200))
-trump[3] = pygame.image.load("trump_baby.png").convert()
+trump[3] = pygame.image.load("trumpbaby_1.png").convert()
 trump[3].set_colorkey((255, 255, 255))
-trump[3] = pygame.transform.scale(trump[3], (100, 150))
+trump[3] = pygame.transform.scale(trump[3], (200, 300))
+
+trump[4] = pygame.image.load("trumpbaby_1.png").convert()
+trump[4].set_colorkey((255, 255, 255))
+trump[4] = pygame.transform.scale(trump[4], (500, 500))
+trump[5] = pygame.image.load("trumpbaby_2.png").convert()
+trump[5].set_colorkey((255, 255, 255))
+trump[5] = pygame.transform.scale(trump[5], (500, 500))
+trump[6] = pygame.image.load("trumpbaby_3.png").convert()
+trump[6].set_colorkey((255, 255, 255))
+trump[6] = pygame.transform.scale(trump[6], (500, 500))
+trump[7] = pygame.image.load("explosion.png").convert()
+trump[7].set_colorkey((255, 255, 255))
+trump[7] = pygame.transform.scale(trump[7], (500, 500))
+
 
 
 if "-a" in sys.argv:
 	sys.argv=["-v", "-p"]
 level = 1
 if "-l" in sys.argv:
-    level = 10
+    level = 11
 	
 cap = cv2.VideoCapture(0)
 size = int(cap.get(4)/2)
@@ -52,6 +66,8 @@ hit = [0, 0, 0]
 nextlvl = True 
 img=[]
 health = 100
+bosshealth = 15
+win = False
 font = pygame.font.Font(None, 36)
 bossstrt = 0
 while True:
@@ -65,7 +81,7 @@ while True:
                 textpos = text.get_rect()
                 textpos.centerx = canvas.get_rect().centerx
                 canvas.blit(text, textpos)
-        pygame.draw.line(canvas, (0, 255, 0), (0, 0), (int(health*SIZE[0]/100), 0), 5)
+        pygame.draw.line(canvas, (0, 255, 0), (0, 0), (int(health*SIZE[0]/100), 0), 10)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
 	        break	
@@ -114,21 +130,39 @@ while True:
                 for i in xrange(level):
                     img[i] = 3
                     tpos[i][1] = -500*i
+            if level==11:
+                tpos = [710, 290]
             nextlvl = False
         else:
             for i in xrange(level):
                 scaledpos.append(0)
-        for tid in xrange(level):
-            #tsize[tid][0]+=10
-            #tsize[tid][1]+=10
-            #tpos[tid][0]-=5
-            tpos[tid][1]+=5
-            if alivetrump[tid]:
-                cv2.rectangle(frame, (tpos[tid][0], tpos[tid][1]+100), (tpos[tid][0]+100, tpos[tid][1]+200), (0, 0, 255), 2) 
-                #scaledsize[tid] = [int(tsize[tid][0]*SIZE[0]/width), int(tsize[tid][1]*SIZE[1]/hieght)]
-                scaledpos[tid] = [int((width - tpos[tid][0])*SIZE[0]/width), int(tpos[tid][1]*SIZE[1]/hieght)]
-                #trump[tid] = pygame.transform.scale(trump[tid], (scaledsize[tid][0], scaledsize[tid][1]))
-                canvas.blit(trump[img[tid]], scaledpos[tid])
+        if level!=11:
+            for tid in xrange(level):
+                #tsize[tid][0]+=10
+                #tsize[tid][1]+=10
+                #tpos[tid][0]-=5
+                tpos[tid][1]+=5
+                if level==10:
+                    tpos[tid][1]+=5
+                if alivetrump[tid]:
+                    cv2.rectangle(frame, (tpos[tid][0], tpos[tid][1]+100), (tpos[tid][0]+100, tpos[tid][1]+200), (0, 0, 255), 2) 
+                    #scaledsize[tid] = [int(tsize[tid][0]*SIZE[0]/width), int(tsize[tid][1]*SIZE[1]/hieght)]
+                    scaledpos[tid] = [int((width - tpos[tid][0])*SIZE[0]/width), int(tpos[tid][1]*SIZE[1]/hieght)]
+                    #trump[tid] = pygame.transform.scale(trump[tid], (scaledsize[tid][0], scaledsize[tid][1]))
+                    canvas.blit(trump[img[tid]], scaledpos[tid])
+        else:
+            pygame.draw.line(canvas, (255, 0, 0), (0, 10), (int(bosshealth*SIZE[0]/15), 10), 10)
+            tpos[1]+=1
+            i=0
+            if win:
+                i = 7
+            if bosshealth>10:
+                i = 4
+            elif bosshealth>5:
+                i = 5
+            else:
+                i = 6
+            canvas.blit(trump[i], tpos)
         if Previous is None:
 		Previous = Current
 		continue
@@ -148,9 +182,15 @@ while True:
 		if cv2.contourArea(c)<90 or cv2.contourArea(c)>1000:
 			continue
  		(x, y, w, h) = cv2.boundingRect(c)
-                for tid in xrange(level):   
-                    if x in range(tpos[tid][0], tpos[tid][0]+100) and y-100 in range(tpos[tid][1], tpos[tid][1]+100):
-                        hit[tid]+=1
+                if level!=11:
+                    for tid in xrange(level):   
+                        if x in range(tpos[tid][0], tpos[tid][0]+100) and y-100 in range(tpos[tid][1], tpos[tid][1]+100):
+                            hit[tid]+=1
+                if level==11:
+                    x = int((width-x)*SIZE[0]/width)
+                    y = int(y*SIZE[1]/hieght)
+                    if x in range(tpos[0]+500) and y in range(tpos[1]+500):
+                        hit+=1
                 if x in range(0, int(width)/2) and y in range(0, baseLine):
                     mvRight+=1
                 if x in range(int(width)/2, int(width)) and y in range(0, baseLine):
@@ -159,7 +199,7 @@ while True:
                 xavg+=(x+(w/2))
                 counter += 1
 		#cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
-        if level!=10:
+        if level<10:
             for tid in xrange(level):
                 if tpos[tid][1]>int(3*hieght/4):
                     if alivetrump[tid]:
@@ -188,13 +228,13 @@ while True:
             if not remaining:
                 level+=1
                 nextlvl = True
-        else:
+        elif level==10:
             for tid in xrange(level):
                 if alivetrump[tid] and tpos[tid][1]>hieght:
                     print "Nice dodge!"
                     alivetrump[tid] = False
             for tid in xrange(level):
-                if hit[tid]>=5:
+                if hit[tid]>=10:
                     print "you couldn't stump the trump!"
                     health-=5
                     hit[tid] = 0
@@ -212,11 +252,18 @@ while True:
                     break
         
             if not remaining:
-                print "You stumped the trump! Final score: 100"
-                cv2.destroyAllWindows()
-                pygame.display.quit()
-                pygame.quit()
-                exit()
+                level+=1
+                nextlvl = True
+        else:
+            if tpos[1]>hieght:
+                print "you lost"
+                raw_input()
+            if hit>=10:
+                bosshealth-=1
+                if bosshealth == 0:
+                    print "you win!"
+                    win = True
+                    raw_input()
         if mvLeft>=5:
             hx+=mvLeft
         if mvRight>=5:
@@ -236,7 +283,7 @@ while True:
 	    cv2.imshow("Detected motion", frame)
             #cv2.imshow("fd", frameDelta)	
 	Previous = Current
-        if level==10:
+        if level==10 and not nextlvl:
             ghx = int((width-hx)*SIZE[0]/width)
             ghy = int(hieght-100)#baseLine#int(hy*SIZE[1]/hieght)
             for tid in xrange(level):
