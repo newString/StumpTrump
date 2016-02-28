@@ -1,52 +1,42 @@
+import MotionControl
 import cv2
 import sys
 from random import randint
 import pygame
 from time import time
 from os import chdir
+def imgsetup(img, w, h, setCol):
+    temp = pygame.image.load(img).convert()
+    if setCol:
+        temp.set_colorkey((255, 255, 255))
+    temp = pygame.transform.scale(temp, (w, h))
+    return temp
+
 chdir('resources')
+cap = cv2.VideoCapture(0)
+size = int(cap.get(4)/2)
+hieght = cap.get(4)
+width = cap.get(3)
+cascPathf = "haarcascade_frontalface_default.xml"
+controls = MotionControl.MotionControl(cap, cascPathf)
 pygame.init()
 SIZE = [1920, 1080]
 canvas = pygame.display.set_mode(SIZE)
 pygame.display.set_caption("Motion Game")
-#canvas = pygame.Surface(screen.get_size())
-#nvas = canvas.convert()
 canvas.fill((255, 255, 255))
-
 trump = [None, None, None, None, None, None, None, None]
 alivetrump = [True, True, True]
-trump[0] = pygame.image.load("trump1.png").convert()
-trump[0].set_colorkey((255, 255, 255))
-trump[0] = pygame.transform.scale(trump[0], (200, 200))
-trump[1] = pygame.image.load("trump2.png").convert()
-trump[1].set_colorkey((255, 255, 255))
-trump[1] = pygame.transform.scale(trump[1], (200, 200))
-trump[2] = pygame.image.load("trump3.png").convert()
-trump[2].set_colorkey((255, 255, 255))
-trump[2] = pygame.transform.scale(trump[2], (200, 200))
-trump[3] = pygame.image.load("trumpbaby_1.png").convert()
-trump[3].set_colorkey((255, 255, 255))
-trump[3] = pygame.transform.scale(trump[3], (200, 300))
+trump[0] = imgsetup("trump1.png", 200, 200, True)
+trump[1] = imgsetup("trump2.png", 200, 200, True)
+trump[2] = imgsetup("trump3.png", 200, 200, True)
+trump[3] = imgsetup("trumpbaby_1.png", 200, 300, True)
+trump[4] = imgsetup("trumpbaby_1.png", 300, 300, True)
+trump[5] = imgsetup("trumpbaby_2.png", 300, 300, True)
+trump[6] = imgsetup("trumpbaby_3.png", 300, 300, True)
+trump[7] = imgsetup("explosion.png", 1920, 1080, True)
 
-trump[4] = pygame.image.load("trumpbaby_1.png").convert()
-trump[4].set_colorkey((255, 255, 255))
-trump[4] = pygame.transform.scale(trump[4], (300, 300))
-trump[5] = pygame.image.load("trumpbaby_2.png").convert()
-trump[5].set_colorkey((255, 255, 255))
-trump[5] = pygame.transform.scale(trump[5], (300, 300))
-trump[6] = pygame.image.load("trumpbaby_3.png").convert()
-trump[6].set_colorkey((255, 255, 255))
-trump[6] = pygame.transform.scale(trump[6], (300, 300))
-trump[7] = pygame.image.load("explosion.png").convert()
-trump[7].set_colorkey((255, 255, 255))
-trump[7] = pygame.transform.scale(trump[7], (1920, 1080))
-
-player = pygame.image.load("sol.png").convert()
-player.set_colorkey((255, 255, 255))
-player = pygame.transform.scale(player, (50, 100))
-
-background = pygame.image.load("usa.png").convert()
-background = pygame.transform.scale(background, (1920, 1080))
+player = imgsetup("sol.png", 50, 100, True)
+background = imgsetup("usa.png", 1920, 1080, False)
 
 if "-a" in sys.argv:
 	sys.argv=["-v", "-p"]
@@ -59,13 +49,7 @@ if "-x" in sys.argv:
     start = False
     level = 10
     
-cap = cv2.VideoCapture(0)
-size = int(cap.get(4)/2)
-hieght = cap.get(4)
-width = cap.get(3)
 hx, hy = 0, 0
-Current = None
-Previous = None
 baseLine = None
 aboveBL = True 
 tid = 0
@@ -88,6 +72,7 @@ healthfont = pygame.font.Font(None, 16)
 bossstrt = 0
 strtcount = 0
 temp = 0
+
 while True:
         canvas.fill((255, 255, 255))
         canvas.blit(background, (0, 0))
@@ -147,26 +132,15 @@ while True:
             canvas.blit(text, textpos)
             pygame.display.flip()
             continue
-        _, frame = cap.read()
-
-	Current = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-	gray = Current
-        cascPathf = "haarcascade_frontalface_default.xml"
-	faceCascade = cv2.CascadeClassifier(cascPathf)
+        controls.setFrame()
         faces = []
         if aboveBL:
             aboveBL = False     
-            while (len(faces)==0):
-                faces = faceCascade.detectMultiScale(gray)
-            print "detection"
-            maxA = [0, faces[0][2]*faces[0][3]]
-            for i in xrange(len(faces)):
-                if faces[i][2]*faces[i][3]>maxA[1]:
-                    maxA = [i, faces[i][2]*faces[i][3]]
-	    hx, hy, w, h = faces[maxA[0]][0], faces[maxA[0]][1], faces[maxA[0]][2], faces[maxA[0]][3]
+            hx, hy, w, h = controls.getFace()
             baseLine = hy+h
+            print baseLine
 
-        Current = cv2.GaussianBlur(Current, (21, 21), 0)
+        
         scaledpos = []
         if nextlvl:
             tpos = []
@@ -203,13 +177,13 @@ while True:
                 if level==10:
                     tpos[tid][1]+=5
                 if alivetrump[tid]:
-                    cv2.rectangle(frame, (tpos[tid][0], tpos[tid][1]+100), (tpos[tid][0]+100, tpos[tid][1]+200), (0, 0, 255), 2) 
+                    cv2.rectangle(controls.frame, (tpos[tid][0], tpos[tid][1]+100), (tpos[tid][0]+100, tpos[tid][1]+200), (0, 0, 255), 2) 
                     #scaledsize[tid] = [int(tsize[tid][0]*SIZE[0]/width), int(tsize[tid][1]*SIZE[1]/hieght)]
                     scaledpos[tid] = [int((width - tpos[tid][0])*SIZE[0]/width), int(tpos[tid][1]*SIZE[1]/hieght)]
                     #trump[tid] = pygame.transform.scale(trump[tid], (scaledsize[tid][0], scaledsize[tid][1]))
                     canvas.blit(trump[img[tid]], scaledpos[tid])
         elif not start:
-            cv2.rectangle(frame, (tpos[0], tpos[1]+100), (tpos[0]-200, tpos[1]+300), (255, 0, 0), 2)
+            cv2.rectangle(controls.frame, (tpos[0], tpos[1]+100), (tpos[0]-200, tpos[1]+300), (255, 0, 0), 2)
             pygame.draw.line(canvas, (255, 0, 0), (0, 20), (int(bosshealth*SIZE[0]/mbhealth), 20), 20)
             text = healthfont.render("BOSS HEALTH", 1, (10, 10, 10))
             textpos = text.get_rect()
@@ -232,16 +206,9 @@ while True:
             if win:
                 pygame.display.flip()
                 continue
-        if Previous is None:
-		Previous = Current
-		continue
-
-	frameDelta = cv2.absdiff(Previous, Current)
-	thresh = cv2.threshold(frameDelta, 25, 255, cv2.THRESH_BINARY)[1]
-	thresh = cv2.dilate(thresh, None, iterations=2)
-	(cnts, _) = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL,
-		cv2.CHAIN_APPROX_SIMPLE)
- 
+        hasPrev, cnts = controls.getMotion() 
+        if not hasPrev:
+            continue
  	yavg = 0
  	xavg = 0
         counter = 0
@@ -353,17 +320,15 @@ while True:
         if mvLeft>=5 or mvRight>=5:
             moved = True
         if baseLine is not None:
-            cv2.line(frame, (0, baseLine), (int(width), baseLine), (0, 255, 0), 2)
+            cv2.line(controls.frame, (0, baseLine), (int(width), baseLine), (0, 255, 0), 2)
         if counter>0:	
 	    yavg/=counter
             xavg/=counter
 
-        frame = cv2.flip(frame, 1)	
+        controls.frame = cv2.flip(controls.frame, 1)	
 	
         if "-v" in sys.argv:
-	    cv2.imshow("Detected motion", frame)
-            #cv2.imshow("fd", frameDelta)	
-	Previous = Current
+	    cv2.imshow("Detected motion", controls.frame)
         if level==10 and not nextlvl:
             ghx = int((width-hx)*SIZE[0]/width)
             ghy = int(SIZE[1]-300)#baseLine#int(hy*SIZE[1]/hieght)
