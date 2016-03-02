@@ -5,6 +5,7 @@ class MotionControl:
     cap = None
     frame = None
     faceCascade = None
+    fgbg = cv2.BackgroundSubtractorMOG()
 
     def __init__(Self, cap, cascPathf):
         Self.cap = cap
@@ -13,6 +14,7 @@ class MotionControl:
 
     def setFrame(Self):
         _, Self.frame = Self.cap.read()
+        #Self.frame = Self.fgbg.apply(Self.frame)
         Self.Current = cv2.cvtColor(Self.frame, cv2.COLOR_BGR2GRAY)
 
     def getFace(Self):
@@ -39,3 +41,13 @@ class MotionControl:
         (cnts, _) = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
         Self.Previous = Self.Current
         return True, cnts
+
+    def show(Self, title):
+        cv2.flip(Self.frame, 1)
+        cv2.imshow(title, Self.frame)
+
+    def drawBaseLine(Self, width, baseLine):
+        cv2.line(Self.frame, (0, baseLine), (int(width), baseLine), (0, 255, 0), 2)
+
+    def rectangle(Self, a, b, c, d):
+        cv2.rectangle(Self.frame, a, b, c, d)
